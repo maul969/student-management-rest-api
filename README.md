@@ -44,6 +44,9 @@ Buka file `data-siswa.html` langsung di browser, atau gunakan ekstensi *Live Ser
 ## Dokumentasi 
 - **untuk dokumentasi berada pada folder /screenshot**
 
+## Database
+- **untuk database ada di folder /database**
+
 ## Pembuat
 - **Nama:** Maulidan Alif Wicaksono
 - **Kelas:** 12 RPL
