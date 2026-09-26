@@ -11,7 +11,7 @@ function validasi(data) {
 
     return errors;
 }
-
+// ambil seluruh data
 const getAllSiswa = async (req, res) => {
     try {
         const data = await siswaModel.findAll();
@@ -21,6 +21,7 @@ const getAllSiswa = async (req, res) => {
     }
 };
 
+// ambil data dari id
 const getSiswaById = async (req, res) => {
     try {
         const data = await siswaModel.findById(req.params.id);
@@ -33,6 +34,7 @@ const getSiswaById = async (req, res) => {
     }
 };
 
+// menambah data
 const createSiswa = async (req, res) => {
     try {
         const errors = validasi(req.body);
@@ -53,6 +55,7 @@ const createSiswa = async (req, res) => {
     }
 };
 
+// update data
 const updateSiswa = async (req, res) => {
     try {
         const errors = validasi(req.body);
@@ -78,6 +81,7 @@ const updateSiswa = async (req, res) => {
     }
 };
 
+// hapus data
 const deleteSiswa = async (req, res) => {
     try {
         const result = await siswaModel.remove(req.params.id);
