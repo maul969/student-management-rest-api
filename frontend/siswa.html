@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data Siswa</title>
+<style>
+  :root{
+    --ink:#1c2430;
+    --paper:#f6f4ef;
+    --panel:#ffffff;
+    --line:#dedad0;
+    --accent:#2f5d50;
+    --accent-dark:#1f4038;
+    --danger:#a5382f;
+    --danger-bg:#fbeceb;
+    --success:#2f5d50;
+    --success-bg:#eaf2ee;
+    --muted:#6b6558;
+    font-family: "Iowan Old Style", "Georgia", serif;
+  }
+
+  body.dark-mode {
+    --ink: #f6f4ef;
+    --paper: #121820;
+    --panel: #1c2430;
+    --line: #323d4d;
+    --accent: #4fa38c;
+    --accent-dark: #6ebca7;
+    --danger: #e05e53;
+    --danger-bg: #2d1816;
+    --success: #4fa38c;
+    --success-bg: #142a24;
+    --muted: #a39c8f;
+  }
+
+  *{box-sizing:border-box; transition: background-color 0.2s, border-color 0.2s, color 0.15s;}
+  body{ margin:0; background:var(--paper); color:var(--ink); min-height:100vh; }
+  header{
+    padding:28px 32px 20px;
+    border-bottom:1px solid var(--line);
+    display:flex; align-items:baseline; justify-content:space-between;
+    flex-wrap:wrap; gap:12px;
+  }
+  header h1{ margin:0; font-size:28px; font-weight:600; letter-spacing:0.2px; }
+  header .sub{ font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size:13px; color:var(--muted); }
+
+  .header-actions { display: flex; gap: 10px; align-items: center; }
+
+  main{ max-width:960px; margin:0 auto; padding:28px 24px 80px; }
+  .card{ background:var(--panel); border:1px solid var(--line); border-radius:4px; padding:24px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+  .apibar{ max-width:420px; margin-bottom:20px; }
+  label{
+    font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size:12px; color:var(--muted); display:block; margin-bottom:4px;
+    font-weight: 500;
+  }
+  input, select{
+    font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size:14px; padding:9px 10px; border:1px solid var(--line);
+    border-radius:3px; background:var(--panel); width:100%; color:var(--ink);
+  }
+  input:focus, select:focus{ outline:2px solid var(--accent); outline-offset:1px; }
+
+  button{
+    font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size:14px; padding:9px 16px; border-radius:3px;
+    border:1px solid transparent; cursor:pointer; font-weight:600;
+  }
+  .btn-primary{ background:var(--accent); color:#fff; }
+  .btn-primary:hover{ background:var(--accent-dark); }
+  .btn-ghost{ background:transparent; border:1px solid var(--line); color:var(--ink); }
+  .btn-ghost:hover{ border-color:var(--accent); }
+  .btn-danger{ background:transparent; border:1px solid var(--danger); color:var(--danger); }
+  .btn-danger:hover{ background:var(--danger-bg); }
+  .btn-small{ padding:5px 10px; font-size:12.5px; }
+
+  .toolbar{ display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; flex-wrap:wrap; gap:10px; }
+  .toolbar .who{ font-family:-apple-system, sans-serif; font-size:13px; color:var(--muted); }
+
+  .filter-controls {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    background: var(--paper);
+    padding: 12px;
+    border-radius: 4px;
+    border: 1px solid var(--line);
+  }
+  .filter-item { flex: 1; min-width: 200px; }
+
+  table{ width:100%; border-collapse:collapse; font-family:-apple-system, sans-serif; font-size:13.5px; }
+  th, td{ text-align:left; padding:10px 8px; border-bottom:1px solid var(--line); }
+  th{ font-size:11.5px; text-transform:uppercase; letter-spacing:0.4px; color:var(--muted); font-weight:600; }
+  tbody tr:hover{ background:rgba(0,0,0,0.02); }
+  td.actions{ white-space:nowrap; text-align:right; }
+  td.actions button{ margin-left:6px; }
+
+  .pagination { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; font-family: -apple-system, sans-serif; font-size: 13.5px; }
+  .pagination-btns { display: flex; gap: 5px; }
+
+  #emptyState, #loadingState{ padding:40px 10px; text-align:center; color:var(--muted); font-family:-apple-system, sans-serif; font-size:14px; }
+  .spinner{
+    width:22px; height:22px; border:3px solid var(--line); border-top-color:var(--accent);
+    border-radius:50%; margin:0 auto 10px; animation:spin .8s linear infinite;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+
+  .overlay{ display:none; position:fixed; inset:0; background:rgba(28,36,48,0.45); align-items:center; justify-content:center; z-index:50; padding:20px; overflow-y: auto;}
+  .overlay.show{ display:flex; }
+  .modal{ background:var(--panel); border-radius:5px; padding:24px; width:100%; max-width:420px; border:1px solid var(--line); color:var(--ink); margin: auto; }
+  .modal h3{ margin:0 0 16px; font-size:18px; }
+  .modal .field{ margin-bottom:12px; }
+  .modal .actions{ display:flex; justify-content:flex-end; gap:8px; margin-top:18px; }
+  .modal p.confirm-text{ font-family:-apple-system, sans-serif; font-size:14px; color:var(--ink); }
+
+  #toastWrap{ position:fixed; top:20px; right:20px; z-index:100; display:flex; flex-direction:column; gap:8px; max-width:320px; }
+  .toast{ font-family:-apple-system, sans-serif; font-size:13.5px; padding:12px 14px; border-radius:4px; border:1px solid; box-shadow:0 2px 10px rgba(0,0,0,0.08); }
+  .toast.success{ background:var(--success-bg); border-color:var(--success); color:var(--success); }
+  .toast.error{ background:var(--danger-bg); border-color:var(--danger); color:var(--danger); }
+
+  .form-error-msg { font-size: 11px; color: var(--danger); margin-top: 3px; display: none; font-family: -apple-system, sans-serif;}
+</style>
+</head>
+<body>
+
+<div id="toastWrap"></div>
+
+<header>
+  <div>
+    <h1>Data Siswa</h1>
+    <div class="sub" style="display: none;">Backend: <span id="apiBaseLabel"></span></div>
+  </div>
+  <div class="header-actions">
+    <button class="btn-ghost btn-small" id="themeToggleBtn">Dark Mode</button>
+  </div>
+</header>
+
+<main>
+  <div class="card apibar" style="display: none;">
+    <label for="apiBase">Alamat API</label>
+    <input id="apiBase" value="http://localhost:3000">
+  </div>
+
+  <div class="card">
+    <div class="toolbar">
+      <span class="who">Kelola data siswa Anda</span>
+      <button class="btn-primary" id="openAddBtn">+ Tambah siswa</button>
+    </div>
+
+    <div class="filter-controls">
+      <div class="filter-item">
+        <label for="searchBar">Cari Siswa</label>
+        <input type="text" id="searchBar" placeholder="Cari berdasarkan Nama atau NIS...">
+      </div>
+      <div class="filter-item">
+        <label for="filterKelas">Filter Kelas</label>
+        <select id="filterKelas">
+          <option value="">Semua Kelas</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="loadingState">
+      <div class="spinner"></div>
+      Menghubungkan & Memuat data siswa...
+    </div>
+
+    <div id="emptyState" style="display:none;"></div>
+
+    <div id="tableContainer" style="display: none;">
+      <table id="siswaTable">
+        <thead>
+          <tr>
+            <th>NIS</th>
+            <th>Nama</th>
+            <th>Kelas</th>
+            <th>Jurusan</th>
+            <th>Alamat</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="siswaTbody"></tbody>
+      </table>
+
+      <div class="pagination">
+        <div id="paginationInfo">Menampilkan 0-0 dari 0 data</div>
+        <div class="pagination-btns">
+          <button class="btn-ghost btn-small" id="prevPageBtn" disabled>Sebelumnya</button>
+          <button class="btn-ghost btn-small" id="nextPageBtn" disabled>Berikutnya</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="overlay" id="formOverlay">
+  <div class="modal">
+    <h3 id="formTitle">Tambah siswa</h3>
+    <input type="hidden" id="formId">
+
+    <div class="field">
+      <label for="formNis">NIS</label>
+      <input id="formNis" type="text" pattern="[0-9]*" inputmode="numeric">
+      <div class="form-error-msg" id="err-formNis">NIS tidak boleh kosong dan harus berupa angka.</div>
+    </div>
+    <div class="field">
+      <label for="formNama">Nama Lengkap</label>
+      <input id="formNama" type="text">
+      <div class="form-error-msg" id="err-formNama">Nama tidak boleh kosong (min. 3 karakter).</div>
+    </div>
+    <div class="field">
+      <label for="formKelas">Kelas</label>
+      <input id="formKelas" type="text" placeholder="contoh: 12">
+      <div class="form-error-msg" id="err-formKelas">Hubungkan Kelas (minimal 1 karakter).</div>
+    </div>
+    <div class="field">
+      <label for="formJurusan">Jurusan</label>
+      <input id="formJurusan" type="text" placeholder="contoh: RPL">
+      <div class="form-error-msg" id="err-formJurusan">Jurusan tidak boleh kosong.</div>
+    </div>
+    <div class="field">
+      <label for="formAlamat">Alamat</label>
+      <input id="formAlamat" type="text">
+      <div class="form-error-msg" id="err-formAlamat">Alamat wajib diisi.</div>
+    </div>
+
+    <div id="formErr" style="color:var(--danger); font-family:-apple-system, sans-serif; font-size:13px; min-height:16px; margin-top:8px;"></div>
+
+    <div class="actions">
+      <button class="btn-ghost" id="formCancelBtn">Batal</button>
+      <button class="btn-primary" id="formSaveBtn">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="confirmOverlay">
+  <div class="modal">
+    <h3>Hapus data siswa?</h3>
+    <p class="confirm-text" id="confirmText"></p>
+    <div class="actions">
+      <button class="btn-ghost" id="confirmCancelBtn">Batal</button>
+      <button class="btn-danger" id="confirmDeleteBtn">Hapus</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  let API_BASE = document.getElementById('apiBase').value.trim().replace(/\/$/, '');
+  let siswaList = [];
+  let filteredSiswaList = [];
+  let deleteTargetId = null;
+
+  let currentPage = 1;
+  const itemsPerPage = 5;
+
+  document.getElementById('apiBaseLabel').textContent = API_BASE;
+
+  if(localStorage.getItem('theme') === 'dark') {
+    document.body.classList.add('dark-mode');
+    document.getElementById('themeToggleBtn').textContent = 'Light Mode';
+  }
+
+  document.getElementById('themeToggleBtn').addEventListener('click', () => {
+    document.body.classList.toggle('dark-mode');
+    const isDark = document.body.classList.contains('dark-mode');
+    document.getElementById('themeToggleBtn').textContent = isDark ? 'Light Mode' : 'Dark Mode';
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  });
+
+  document.getElementById('apiBase').addEventListener('change', (e) => {
+    API_BASE = e.target.value.trim().replace(/\/$/, '');
+    document.getElementById('apiBaseLabel').textContent = API_BASE;
+    loadSiswa();
+  });
+
+  function showToast(message, type){
+    const wrap = document.getElementById('toastWrap');
+    const el = document.createElement('div');
+    el.className = 'toast ' + (type === 'error' ? 'error' : 'success');
+    el.textContent = message;
+    wrap.appendChild(el);
+    setTimeout(() => el.remove(), 3500);
+  }
+
+  async function apiFetch(path, options){
+    options = options || {};
+    const headers = Object.assign(
+      { 'Content-Type': 'application/json' },
+      options.headers || {}
+    );
+    let res;
+    try{
+      res = await fetch(API_BASE + path, Object.assign({}, options, { headers }));
+    }catch(err){
+      throw new Error('Tidak bisa menghubungi server API. Pastikan server lokal/backend Anda menyala.');
+    }
+
+    let body = null;
+    try{ body = await res.json(); }catch(_){ }
+
+    if(!res.ok){
+      const msg = (body && (body.message || body.error ||
+        (body.errors && body.errors.join(', ')))) || ('Request gagal (' + res.status + ')');
+      throw new Error(msg);
+    }
+    return body;
+  }
+
+  const loadingState = document.getElementById('loadingState');
+  const emptyState = document.getElementById('emptyState');
+  const tableContainer = document.getElementById('tableContainer');
+  const tbody = document.getElementById('siswaTbody');
+
+  async function loadSiswa(){
+    loadingState.style.display = 'block';
+    emptyState.style.display = 'none';
+    tableContainer.style.display = 'none';
+
+    try{
+      const data = await apiFetch('/siswa', { method: 'GET' });
+      siswaList = Array.isArray(data) ? data : [];
+      populateClassFilter();
+      processFilterAndSearch();
+    }catch(err){
+      showToast(err.message, 'error');
+      emptyState.innerHTML = '🔴 Gagal memuat data. ' + err.message + '<br><button class="btn-ghost btn-small" id="retryBtn" style="margin-top:10px;">Coba Lagi</button>';
+      emptyState.style.display = 'block';
+      document.getElementById('retryBtn')?.addEventListener('click', loadSiswa);
+    }finally{
+      loadingState.style.display = 'none';
+    }
+  }
+
+  function populateClassFilter(){
+    const filterKelas = document.getElementById('filterKelas');
+    const previousSelection = filterKelas.value;
+
+    const classes = [...new Set(siswaList.map(s => s.kelas).filter(Boolean))];
+
+    filterKelas.innerHTML = '<option value="">Semua Kelas</option>';
+    classes.sort().forEach(cls => {
+      const option = document.createElement('option');
+      option.value = cls;
+      option.textContent = cls;
+      filterKelas.appendChild(option);
+    });
+
+    if (classes.includes(previousSelection)) {
+      filterKelas.value = previousSelection;
+    }
+  }
+
+  function processFilterAndSearch(){
+    const keyword = document.getElementById('searchBar').value.toLowerCase().trim();
+    const classFilter = document.getElementById('filterKelas').value;
+
+    filteredSiswaList = siswaList.filter(siswa => {
+      const matchesSearch = String(siswa.nama).toLowerCase().includes(keyword) ||
+                            String(siswa.nis).includes(keyword);
+      const matchesClass = !classFilter || String(siswa.kelas) === classFilter;
+      return matchesSearch && matchesClass;
+    });
+
+    currentPage = 1;
+    renderTable();
+  }
+
+  document.getElementById('searchBar').addEventListener('input', processFilterAndSearch);
+  document.getElementById('filterKelas').addEventListener('change', processFilterAndSearch);
+
+  function renderTable(){
+    tbody.innerHTML = '';
+
+    if(filteredSiswaList.length === 0){
+      emptyState.textContent = 'Tidak ditemukan data siswa yang cocok dengan kriteria.';
+      emptyState.style.display = 'block';
+      tableContainer.style.display = 'none';
+      return;
+    }
+
+    emptyState.style.display = 'none';
+    tableContainer.style.display = 'block';
+
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentItems = filteredSiswaList.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(filteredSiswaList.length / itemsPerPage);
+
+    currentItems.forEach(s => {
+      const tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td>' + escapeHtml(s.nis) + '</td>' +
+        '<td>' + escapeHtml(s.nama) + '</td>' +
+        '<td>' + escapeHtml(s.kelas) + '</td>' +
+        '<td>' + escapeHtml(s.jurusan) + '</td>' +
+        '<td>' + escapeHtml(s.alamat) + '</td>' +
+        '<td class="actions">' +
+          '<button class="btn-ghost btn-small" data-edit="' + s.id + '">Edit</button>' +
+          '<button class="btn-danger btn-small" data-del="' + s.id + '">Hapus</button>' +
+        '</td>';
+      tbody.appendChild(tr);
+    });
+
+    const displayStart = filteredSiswaList.length === 0 ? 0 : indexOfFirstItem + 1;
+    const displayEnd = Math.min(indexOfLastItem, filteredSiswaList.length);
+    document.getElementById('paginationInfo').textContent = `Menampilkan ${displayStart}-${displayEnd} dari ${filteredSiswaList.length} data`;
+
+    document.getElementById('prevPageBtn').disabled = currentPage === 1;
+    document.getElementById('nextPageBtn').disabled = currentPage === totalPages || totalPages === 0;
+
+    tbody.querySelectorAll('[data-edit]').forEach(btn => {
+      btn.addEventListener('click', () => openEdit(btn.getAttribute('data-edit')));
+    });
+    tbody.querySelectorAll('[data-del]').forEach(btn => {
+      btn.addEventListener('click', () => openDeleteConfirm(btn.getAttribute('data-del')));
+    });
+  }
+
+  document.getElementById('prevPageBtn').addEventListener('click', () => {
+    if (currentPage > 1) {
+      currentPage--;
+      renderTable();
+    }
+  });
+
+  document.getElementById('nextPageBtn').addEventListener('click', () => {
+    const totalPages = Math.ceil(filteredSiswaList.length / itemsPerPage);
+    if (currentPage < totalPages) {
+      currentPage++;
+      renderTable();
+    }
+  });
+
+  function escapeHtml(v){
+    if(v === null || v === undefined) return '';
+    return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  const formOverlay = document.getElementById('formOverlay');
+  const formTitle = document.getElementById('formTitle');
+  const formErr = document.getElementById('formErr');
+  const fId = document.getElementById('formId');
+  const fNis = document.getElementById('formNis');
+  const fNama = document.getElementById('formNama');
+  const fKelas = document.getElementById('formKelas');
+  const fJurusan = document.getElementById('formJurusan');
+  const fAlamat = document.getElementById('formAlamat');
+
+  function openForm(){
+    formErr.textContent = '';
+    formOverlay.classList.add('show');
+    resetInternalFormValidation();
+  }
+  function closeForm(){
+    formOverlay.classList.remove('show');
+  }
+
+  function resetInternalFormValidation() {
+    document.querySelectorAll('.form-error-msg').forEach(msg => msg.style.display = 'none');
+  }
+
+  document.getElementById('openAddBtn').addEventListener('click', () => {
+    formTitle.textContent = 'Tambah siswa';
+    fId.value = '';
+    fNis.value = ''; fNama.value = ''; fKelas.value = ''; fJurusan.value = ''; fAlamat.value = '';
+    openForm();
+  });
+
+  function openEdit(id){
+    const s = siswaList.find(x => String(x.id) === String(id));
+    if(!s) return;
+    formTitle.textContent = 'Edit siswa';
+    fId.value = s.id;
+    fNis.value = s.nis; fNama.value = s.nama; fKelas.value = s.kelas;
+    fJurusan.value = s.jurusan; fAlamat.value = s.alamat;
+    openForm();
+  }
+
+  document.getElementById('formCancelBtn').addEventListener('click', closeForm);
+
+  function validateForm(){
+    let isValid = true;
+    resetInternalFormValidation();
+
+    if(!fNis.value.trim() || isNaN(fNis.value)) {
+      document.getElementById('err-formNis').style.display = 'block';
+      isValid = false;
+    }
+    if(!fNama.value.trim() || fNama.value.trim().length < 3) {
+      document.getElementById('err-formNama').style.display = 'block';
+      isValid = false;
+    }
+    if(!fKelas.value.trim()) {
+      document.getElementById('err-formKelas').style.display = 'block';
+      isValid = false;
+    }
+    if(!fJurusan.value.trim()) {
+      document.getElementById('err-formJurusan').style.display = 'block';
+      isValid = false;
+    }
+    if(!fAlamat.value.trim()) {
+      document.getElementById('err-formAlamat').style.display = 'block';
+      isValid = false;
+    }
+
+    return isValid;
+  }
+
+  document.getElementById('formSaveBtn').addEventListener('click', async () => {
+    formErr.textContent = '';
+
+    if (!validateForm()) {
+      formErr.textContent = 'Silakan perbaiki data yang belum sesuai.';
+      return;
+    }
+
+    const payload = {
+      nis: Number(fNis.value.trim()),
+      nama: fNama.value.trim(),
+      kelas: fKelas.value.trim(),
+      jurusan: fJurusan.value.trim(),
+      alamat: fAlamat.value.trim()
+    };
+
+    const isEdit = !!fId.value;
+    const btn = document.getElementById('formSaveBtn');
+    btn.disabled = true; btn.textContent = 'Menyimpan...';
+
+    try{
+      if(isEdit){
+        await apiFetch('/siswa/' + fId.value, {
+          method: 'PUT',
+          body: JSON.stringify(payload)
+        });
+        showToast('Data siswa berhasil diupdate', 'success');
+      }else{
+        await apiFetch('/siswa', {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+        showToast('Siswa baru berhasil ditambahkan', 'success');
+      }
+      closeForm();
+      loadSiswa();
+    }catch(err){
+      formErr.textContent = err.message;
+    }finally{
+      btn.disabled = false; btn.textContent = 'Simpan';
+    }
+  });
+
+  const confirmOverlay = document.getElementById('confirmOverlay');
+  const confirmText = document.getElementById('confirmText');
+
+  function openDeleteConfirm(id){
+    const s = siswaList.find(x => String(x.id) === String(id));
+    deleteTargetId = id;
+    confirmText.textContent = s
+      ? ('Yakin ingin menghapus data "' + s.nama + '"? Tindakan ini tidak bisa dibatalkan.')
+      : 'Yakin ingin menghapus data ini?';
+    confirmOverlay.classList.add('show');
+  }
+  function closeConfirm(){
+    confirmOverlay.classList.remove('show');
+    deleteTargetId = null;
+  }
+
+  document.getElementById('confirmCancelBtn').addEventListener('click', closeConfirm);
+
+  document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+    if(!deleteTargetId) return;
+    const btn = document.getElementById('confirmDeleteBtn');
+    btn.disabled = true; btn.textContent = 'Menghapus...';
+
+    try{
+      await apiFetch('/siswa/' + deleteTargetId, { method: 'DELETE' });
+      showToast('Data siswa berhasil dihapus', 'success');
+      closeConfirm();
+      loadSiswa();
+    }catch(err){
+      showToast(err.message, 'error');
+      closeConfirm();
+    }finally{
+      btn.disabled = false; btn.textContent = 'Hapus';
+    }
+  });
+
+  loadSiswa();
+})();
+</script>
+</body>
+</html>
